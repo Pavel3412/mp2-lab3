@@ -1,49 +1,40 @@
 #include "stack.h"
 #include <gtest.h>
 
-TEST(TStack, can_create_stack)
-{
-	ASSERT_NO_THROW(TStack<int> st());
-}
-TEST(TStack, can_check_empty)
-{
-	TStack<int>st;
-	EXPECT_EQ(1, st.isEmpty());
-}
-TEST(TStack, can_check_full)
-{
-	TStack<int>st;
-	for (int i = 0; i < MaxStackSize; i++)
-		st.push(0);
-	EXPECT_EQ(1, !st.isEmpty());
-}
-TEST(TStack, can_push)
-{
-	TStack<int>st;
-	st.push(1);
-	EXPECT_EQ(1, st.Top());
-}
-TEST(TStack, throw_when_try_push_to_full_stack)
-{
-	TStack<int>st;
-	for (int i = 0; i < MaxStackSize; i++)
-		st.push(0);
-	ASSERT_ANY_THROW(st.push(0));
-}
-TEST(TStack, can_pop_to_stack)
-{
-	TStack<int>st;
-	st.push(1);
-	EXPECT_EQ(1, st.pop());
-}
-TEST(TStack, throw_when_try_to_pop_from_empty_stack)
-{
-	TStack<int>st;
-	ASSERT_ANY_THROW(st.pop());
 
-}
-TEST(TStack, throw_when_try_get_top_element_from_empty_stack)
+TEST(Stack, Stack_with_neditive_length)
 {
-	TStack<int>st;
-	ASSERT_ANY_THROW(st.Top());
+	ASSERT_ANY_THROW(TStack<int> st(-10));
+}
+
+
+TEST(Stack, Stack_with_positive_length)
+{
+	ASSERT_NO_THROW(TStack<int> st(10));
+}
+
+TEST(Stack, Error_Pop_From_Empty_Stack)
+{
+	TStack<int> Stack(10);
+
+	ASSERT_ANY_THROW(Stack.Pop());
+}
+
+
+TEST(Stack, Error_Push_From_Full_Stack)
+{
+	TStack<int> Stack(3);
+	Stack.Push(1);
+	Stack.Push(2);
+	Stack.Push(3);
+	ASSERT_ANY_THROW(Stack.Push(1));
+}
+
+TEST(Stack, Pop_From_Stack)
+{
+	TStack<int> Stack(10);
+	Stack.Push(1);
+	Stack.Push(2);
+	Stack.Push(3);
+	ASSERT_NO_THROW(Stack.Pop());
 }
