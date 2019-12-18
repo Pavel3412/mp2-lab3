@@ -1,32 +1,15 @@
-﻿#ifndef __POSTFIX_H__
-#define __POSTFIX_H__
-
+﻿#pragma once
+#include "Stack.h"
 #include <string>
-#include "stack.h"
-#include <iostream>
-#include <sstream>
-#include <fstream>
 
 using namespace std;
 
-string StringDecoder(string);
-
-class TPostfix
-{
-	string infix;
-	string postfix;
+static class Converter {
+private:
+	static bool Priority(char, char);
+	static double Calculator(double, double, char);
 public:
-	TPostfix()
-	{
-		infix = "a + b";
-	}
-	string GetInfix() { return infix; }
-	string GetPostfix() { return postfix; }
-	void SetInfix(string expression) { infix = StringDecoder(expression); }
-	string ToPostfix();
-	double Calculate(string a = ""); // Ввод переменных, вычисление по постфиксной форме
+	static string CreatePostFixForm(const string&);
+	static double Calculate(const string&, double*, char*, int);
+	static void GetValueOperands(const string&, double*&, char*&, int&);
 };
-
-
-
-#endif

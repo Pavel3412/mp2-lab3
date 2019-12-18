@@ -1,185 +1,122 @@
-﻿#include "converter.h"
-#include "stack.h"
-#include "map"
+﻿#include "Converter.h"
+#include <iostream>
 
-
-string StringDecoder(string s)
-{
-	string word = "";
-	string ans = "";
-	int dot = 0;
-	int count_vars = 0, count_ops = 0, count_brackets = 0;
-	for (int i = 0; i < s.size(); ++i)
-	{
-		if (s[i] == ' ')
-		{
-			if (word != "")
-			{
-				ans += word + " ";
-				count_vars++;
-			}
-			word = "";
-			dot = 0;
+string Converter::CreatePostFixForm(const string& _str) {
+	int l = 0;
+	int r = 0;
+	for (int i = 0; i < _str.length(); i++) {
+		if (_str[i] == '(') l++;
+		if (_str[i] == ')') r++;
+	}
+	if (l != r) throw "Invalid expression";
+	if ((_str[0] == '+') || (_str[0] == '-') || (_str[0] == '*') || (_str[0] == '/')) throw "Invalid expression";
+	if (_str[_str.length() - 1] == '+' || _str[_str.length() - 1] == '-' || _str[_str.length() - 1] == '*' || _str[_str.length() - 1] == '/') throw "Invalid expression";
+	for (int i = 0; i < _str.length(); i++)
+		if (_str[i] == '0' || _str[i] == '1' || _str[i] == '2' || _str[i] == '3' || _str[i] == '4' || _str[i] == '5' || _str[i] == '6' || _str[i] == '7' || _str[i] == '8' || _str[i] == '9')
+			throw "Invalid expression";
+	for (int i = 1; i < _str.length(); i++)
+		if ((_str[i] != '+') && (_str[i] != '-') && (_str[i] != '*') && (_str[i] != '/') && (_str[i] != '(') && (_str[i] != ')') && (_str[i - 1] != '+') && (_str[i - 1] != '-') && (_str[i - 1] != '*') && (_str[i - 1] != '/') && (_str[i - 1] != '(') && (_str[i - 1] != ')'))
+			throw "Invalid expression";
+	for (int i = 1; i < _str.length(); i++)
+		if (((_str[i] == '+') || (_str[i] == '-') || (_str[i] == '*') || (_str[i] == '/')) && ((_str[i - 1] == '+') || (_str[i - 1] == '-') || (_str[i - 1] == '*') || (_str[i - 1] == '/')))
+			throw "Invalid expression";
+	TStack<double> operands(_str.length());
+	TStack<double> operators(_str.length());
+	string PostFixForm = "";
+	for (int i = 0; i < _str.length(); i++) {
+		bool b = (_str[i] == '+') || (_str[i] == '-') || (_str[i] == '*') || (_str[i] == '/') || (_str[i] == '(') || (_str[i] == ')');
+		if (!b) {
+			operands.Push(_str[i]);
+			continue;
 		}
-		else if ((s[i] >= '0' && s[i] <= '9' && word == "") || ((s[i] >= '0' && s[i] <= '9' || s[i] == '.') && word != "" && word[0] >= '0' && word[0] <= '9'))
-		{
-			if (s[i] == '.' && !dot)
-			{
-				word += s[i];
-				dot++;
+		if (b) {
+			if (_str[i] == ')') {
+				while (operators.TopElems() != '(')
+					operands.Push(operators.Pop());
+				operators.Pop();
+				continue;
 			}
-			else if (s[i] == '.')
-			{
-				throw 1;
+			if (Priority(_str[i], operators.TopElems())) {
+				while ((Priority(_str[i], operators.TopElems())) && !(operators.IsEmpty()) && (operators.TopElems() != '('))
+					operands.Push(operators.Pop());
+				operators.Push(_str[i]);
+				continue;
 			}
-			else
-			{
-				word += s[i];
-			}
-		}
-		else if (s[i] == '*' || s[i] == '/' || s[i] == '+' || s[i] == '-' || s[i] == '(' || s[i] == ')')
-		{
-			if (word != "")
-			{
-				ans += word + " " + s[i] + " ";
-				count_vars++;
-			}
-			else
-				ans = ans + s[i] + " ";
-			if (s[i] != '(' && s[i] != ')')
-				count_ops++;
-			if (s[i] == '(')
-				count_brackets++;
-			else if (s[i] == ')')
-				count_brackets--;
-			if (count_brackets < 0)
-				throw 1;
-			word = "";
-			dot = 0;
-		}
-		else if ((s[i] < '0' || s[i] > '9') && word != "" && word[0] >= '0' && word[0] <= '9')
-		{
-			throw 1;
-		}
-		else
-		{
-			word += s[i];
+			operators.Push(_str[i]);
 		}
 	}
-	if (word != "")
-	{
-		ans += word + " ";
-		count_vars++;
-	}
-	if (count_vars - 1 != count_ops || count_brackets != 0)
-		throw 1;
-	ans.erase(ans.size() - 1, 1);
-	return ans;
+	while (!operators.IsEmpty())
+		operands.Push(operators.Pop());
+	while (!operands.IsEmpty())
+		operators.Push(operands.Pop());
+	while (!operators.IsEmpty())
+		PostFixForm += operators.Pop();
+	return PostFixForm;
+}
 
+double Converter::Calculate(const string& _str, double* VO, char* B, int k) {
+	TStack<double> e(k);
+	int l = _str.length();
+	for (int i = 0; i < l; i++) {
+		if (_str[i] == '+' || _str[i] == '-' || _str[i] == '*' || _str[i] == '/') {
+			double a = e.Pop();
+			double b = e.Pop();
+			e.Push(Calculator(b, a, _str[i]));
+		}
+		else {
+			for (int j = 0; j < k; j++)
+				if (B[j] == _str[i])
+					e.Push(VO[j]);
+		}
+	}
+	return e.Pop();
 }
 
 
-string TPostfix::ToPostfix()
-{
-	postfix = "";
-	TStack<string> stack;
-	string word;
-	string op = "*/-+(";
-	for (stringstream is(infix); is >> word;)
-	{
-		if (word == "(")
-			stack.push(word);
-		else if (word == "*" || word == "/")
-		{
-			while (!stack.isEmpty() && (stack.Top() == "/" || stack.Top() == "*"))
-			{
-				postfix += stack.pop() + " ";
-			}
-			stack.push(word);
-		}
-		else if (word == ")")
-		{
-			while (stack.Top() != "(")
-				postfix += stack.pop() + " ";
-			stack.pop();
-		}
-		else if ((word == "+" || word == "-") && stack.isEmpty())
-			stack.push(word);
-		else if ((word == "+" || word == "-") && !(stack.isEmpty()))
-		{
-			while (!stack.isEmpty() && stack.Top() != "(")
-				postfix += stack.pop() + " ";
-			stack.push(word);
-		}
-		else
-		{
-			postfix += word + " ";
-		}
-	}
-	while (!stack.isEmpty())
-		postfix += stack.pop() + " ";
-	postfix.erase(postfix.size() - 1, 1);
-	return postfix;
+bool Converter::Priority(char a, char b) {
+	if ((a == '*' || a == '/') && (b == '*' || b == '/')) return true;
+	if ((a == '+' || a == '-') && (b == '+' || b == '-')) return true;
+	if ((a == '+' || a == '-') && (b == '*' || b == '/')) return true;
+	return false;
 }
 
-double TPostfix::Calculate(string s)
-{
-	map<string, double> vars;
-	stringstream input(s);
-	string word, op = "*/+-";
-	for (stringstream is(infix); is >> word;)
+double Converter::Calculator(double a, double b, char o) {
+	switch (o)
 	{
-		if (op.find(word) == string::npos && word != "(" && word != ")" && (word[0] < '0' || word[0] > '9') && vars.find(word) == vars.end())
-		{
-			double a;
-			if (s != "")
-				input >> a;
-			else
-			{
-				cout << "Введите переменную " << word << ": ";
-				cin >> a;
+	case '+':
+		return a + b;
+	case '-':
+		return a - b;
+	case '*':
+		return a * b;
+	case '/':
+		if (b == 0) throw "You cannot divide by zero";
+		return a / b;
+	}
+}
+
+void Converter::GetValueOperands(const string& _str, double*& VO, char*& B, int& ki) {
+	ki--;
+	for (int i = 0; i < _str.length(); i++)
+		if (_str[i] != '*' && _str[i] != '/' && _str[i] != '+' && _str[i] != '-')
+			ki++;
+	VO = new double[ki];
+	B = new char[ki];
+	int c = 0;
+	int g;
+	for (int i = 0; i < _str.length(); i++) {
+		g = 0;
+		if (_str[i] != '*' && _str[i] != '/' && _str[i] != '+' && _str[i] != '-') {
+			for (int j = 0; j < c; j++) if (B[j] == _str[i]) {
+				g = 1;
+				break;
 			}
-			vars[word] = a;
-		}
-		else if (word[0] >= '0' && word[0] <= '9')
-		{
-			double a;
-			stringstream tmp(word);
-			tmp >> a;
-			vars[word] = a;
+			if (g == 0) {
+				B[c] = _str[i];
+				cout << "Enter " << _str[i] << ": ";
+				cin >> VO[c];
+				c++;
+			}
 		}
 	}
-	TStack<double> stack;
-	for (stringstream is(postfix); is >> word;)
-	{
-		if (word == "+")
-		{
-			double a = stack.pop();
-			double b = stack.pop();
-			stack.push(b + a);
-		}
-		else if (word == "-")
-		{
-			double a = stack.pop();
-			double b = stack.pop();
-			stack.push(b - a);
-		}
-		else if (word == "*")
-		{
-			double a = stack.pop();
-			double b = stack.pop();
-			stack.push(b * a);
-		}
-		else if (word == "/")
-		{
-			double a = stack.pop();
-			double b = stack.pop();
-			stack.push(b / a);
-		}
-		else
-		{
-			stack.push(vars[word]);
-		}
-	}
-	return stack.Top();
 }
