@@ -38,3 +38,10 @@ TEST(Stack, Pop_From_Stack)
 	Stack.Push(3);
 	ASSERT_NO_THROW(Stack.Pop());
 }
+
+TEST(Stack, Check_Stack_isEmpty)
+{
+	TStack<int> Stack(10);
+
+	ASSERT_TRUE(Stack.IsEmpty());
+}

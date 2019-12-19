@@ -96,7 +96,7 @@ double Converter::Calculator(double a, double b, char o) {
 }
 
 void Converter::GetValueOperands(const string& _str, double*& VO, char*& B, int& ki) {
-	ki--;
+	ki=0;
 	for (int i = 0; i < _str.length(); i++)
 		if (_str[i] != '*' && _str[i] != '/' && _str[i] != '+' && _str[i] != '-')
 			ki++;

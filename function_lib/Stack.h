@@ -65,5 +65,6 @@ ValueType TStack<ValueType>::Pop() {
 
 template<class ValueType>
 ValueType TStack<ValueType>::TopElems() const {
+	if (this->IsEmpty()) throw "Error:Stack empty";
 	return elems[top];
 }
